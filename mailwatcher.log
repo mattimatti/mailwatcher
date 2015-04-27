@@ -1,0 +1,27 @@
+info start application 
+info inited dropbox 
+info update local template from https://dl.dropboxusercontent.com/u/27671157/hermes/template.html 
+info inited email service 
+info watching folder for created files : /Users/mattimatti/Documents/watch 
+info process created file: /Users/mattimatti/Documents/watch/mmonti@gmail.com.jpeg
+info uploadFile: /Users/mattimatti/Documents/watch/mmonti@gmail.com.jpeg 
+info process file uploaded successfully to dropbox
+info <img src="https://dl.dropboxusercontent.com/u/27671157/hermes/mmonti%40gmail.com.jpeg"/> 
+info process send message
+info mailParams { from: 'Hermes Orticola <hermes.orticola@xc-events.it>',
+info mailParams   subject: 'Baciami Paolo',
+info mailParams   text: 'my default text {image} text',
+info mailParams   to: 'mmonti@gmail.com',
+info mailParams   html: '<img src="https://dl.dropboxusercontent.com/u/27671157/hermes/mmonti%40gmail.com.jpeg"/>' }
+info sendResponse { accepted: [ 'mmonti@gmail.com' ],
+info sendResponse   rejected: [],
+info sendResponse   response: '250 2.0.0 OK 1430156071 hj10sm30354386wjc.48 - gsmtp',
+info sendResponse   envelope: 
+info sendResponse    { from: 'hermes.orticola@xc-events.it',
+info sendResponse      to: [ 'mmonti@gmail.com' ] },
+info sendResponse   messageId: '1430156070550-66ac10b6-a1e182d0-d9e1b0bd@xc-events.it' }
+info update local template from https://dl.dropboxusercontent.com/u/27671157/hermes/template.html 
+info process ------- file processed successfully, ready for next -------
+info process 
+info process 
+info process 
