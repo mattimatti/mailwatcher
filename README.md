@@ -20,12 +20,16 @@ For developers:
 
 In your shell:
 
+ 	git clone https://github.com/mattimatti/mailwatcher.git
+    cd mailwatcher
     npm install grunt-cli -git
     npm install
     grunt
 
 
-Install
+
+For final users:
+
 
     git clone https://github.com/mattimatti/mailwatcher.git
     cd mailwatcher
