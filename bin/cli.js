@@ -17,12 +17,10 @@ var fs = require('fs');
 var request = require('request');
 
 
-var config = JSON.parse(fs.readFileSync('.config.json', 'utf8'));
 
-//console.log(config);
-
+var config;
 var app;
-
+var configFile = '.config.json';
 
 // Enable Plugins
 cli.enable('version');
@@ -58,12 +56,19 @@ cli.main(function (args, options) {
 
 	try {
 
+		if (!fs.existsSync(configFile)) {
+			cli.error("missing config file " + configFile + ' Please refer to installation instructions');
+			process.exit(1);
+		}
+
+		config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+
 		app = new App();
 		app.initialize(config);
 		app.start();
 
 	} catch (err) {
-
+		cli.error(err.message);
 	}
 
 
