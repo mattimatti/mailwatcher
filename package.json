@@ -1,6 +1,6 @@
 {
   "name": "mailwatcher",
-  "version": "0.3.0",
+  "version": "0.3.3",
   "description": "",
   "main": "./lib/app.js",
   "bin": "./bin/cli.js",

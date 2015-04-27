@@ -29,6 +29,11 @@
               </a>
             
               
+              <a class="source" href="logger.html">
+                logger.js
+              </a>
+            
+              
               <a class="source" href="all_test.html">
                 all_test.js
               </a>
@@ -91,7 +96,10 @@
 <span class="hljs-keyword">var</span> request = <span class="hljs-built_in">require</span>(<span class="hljs-string">'request'</span>);
 
 
-<span class="hljs-keyword">var</span> config = <span class="hljs-built_in">JSON</span>.parse(fs.readFileSync(<span class="hljs-string">'.config.json'</span>, <span class="hljs-string">'utf8'</span>));</pre></div></div>
+
+<span class="hljs-keyword">var</span> config;
+<span class="hljs-keyword">var</span> app;
+<span class="hljs-keyword">var</span> configFile = <span class="hljs-string">'.config.json'</span>;</pre></div></div>
             
         </li>
         
@@ -101,22 +109,6 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
-              </div>
-              <p>console.log(config);</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>
-<span class="hljs-keyword">var</span> app;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-4">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>Enable Plugins</p>
 
@@ -143,29 +135,29 @@ cli.width = <span class="hljs-number">120</span>;</pre></div></div>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-4">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>Add here the command line options</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>cli.parse({
-  url: [<span class="hljs-literal">false</span>, <span class="hljs-string">'Define the url from where to start the crawling'</span>, <span class="hljs-string">'string'</span>, <span class="hljs-string">'http://127.0.0.1'</span>],
-  debug: [<span class="hljs-string">'d'</span>, <span class="hljs-string">'Debug. Set the logger level to debug. Overrides --logLevel'</span>]
+	url: [<span class="hljs-literal">false</span>, <span class="hljs-string">'Define the url from where to start the crawling'</span>, <span class="hljs-string">'string'</span>, <span class="hljs-string">'http://127.0.0.1'</span>],
+	debug: [<span class="hljs-string">'d'</span>, <span class="hljs-string">'Debug. Set the logger level to debug. Overrides --logLevel'</span>]
 });</pre></div></div>
             
         </li>
         
         
-        <li id="section-6">
+        <li id="section-5">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <p>Execute main function</p>
 
@@ -175,9 +167,23 @@ cli.width = <span class="hljs-number">120</span>;</pre></div></div>
 cli.main(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(args, options)</span> </span>{
 
 
-  app = <span class="hljs-keyword">new</span> App();
-  app.initialize(config);
-  app.start();
+	<span class="hljs-keyword">try</span> {
+
+		<span class="hljs-keyword">if</span> (!fs.existsSync(configFile)) {
+			cli.error(<span class="hljs-string">"missing config file "</span> + configFile + <span class="hljs-string">' Please refer to installation instructions'</span>);
+			process.exit(<span class="hljs-number">1</span>);
+		}
+
+		config = <span class="hljs-built_in">JSON</span>.parse(fs.readFileSync(configFile, <span class="hljs-string">'utf8'</span>));
+
+		app = <span class="hljs-keyword">new</span> App();
+		app.initialize(config);
+		app.start();
+
+	} <span class="hljs-keyword">catch</span> (err) {
+		cli.error(err.message);
+	}
+
 
 });</pre></div></div>
             

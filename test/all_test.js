@@ -35,6 +35,7 @@ var createImage = require('./createImage.js');
 var options = {
 	watchedFolder: './test/watched',
 	processedFolder: './test/processed',
+	sendfailFolder: './test/sendfail',
 	dropbox: {
 		publicURL: ''
 	}
@@ -48,12 +49,15 @@ module.exports = {
 
 	setUp: function (callback) {
 
+
+		mkdirp(options.watchedFolder, function (err) {});
+		mkdirp(options.processedFolder, function (err) {});
+		mkdirp(options.sendfailFolder, function (err) {});
+
 		this.app = new Application();
 		this.app.initialize(options);
 
 
-		mkdirp(this.app.config.watchedFolder, function (err) {});
-		mkdirp(this.app.config.processedFolder, function (err) {});
 
 		callback();
 	},
@@ -64,6 +68,7 @@ module.exports = {
 
 		fse.emptyDirSync(this.app.config.watchedFolder);
 		fse.emptyDirSync(this.app.config.processedFolder);
+		fse.emptyDirSync(this.app.config.sendfailFolder);
 
 		this.app = null;
 
@@ -131,7 +136,7 @@ module.exports = {
 
 		test.expect(4);
 
-		var theFile = this.app.config.watchedFolder + '/test.jpeg';
+		var theFile = this.app.config.watchedFolder + '/mmonti@gmail.com.jpeg';
 
 		if (fs.existsSync(theFile)) {
 			fs.unlinkSync(theFile);
@@ -142,10 +147,12 @@ module.exports = {
 
 		createImage(theFile);
 
+
+		console.log("check", theFile);
 		test.equal(fs.existsSync(theFile), true);
 
 
-		var destFile = this.app.moveFile(theFile);
+		var destFile = this.app.moveFile(theFile, this.app.config.processedFolder);
 
 
 		test.equal(fs.existsSync(theFile), false);

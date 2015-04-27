@@ -76,8 +76,7 @@ module.exports = function (grunt) {
       test: {
         options: {
           version: require('./package.json').version
-        },
-        command: 'subl -w CHANGELOG.md',
+        }
       }
     },
 
@@ -102,6 +101,10 @@ module.exports = function (grunt) {
   // Default task.
   grunt.registerTask('default', ['jshint', 'nodeunit', 'docco']);
   grunt.registerTask('prepare', ['jshint', 'todo', ]);
-  grunt.registerTask('release', ['bump-only:minor']);
-  grunt.registerTask('patch', ['bump-only:patch']);
+  grunt.registerTask('release', ['bump-only:minor', 'commit']);
+  grunt.registerTask('patch', ['bump-only:patch', 'commit']);
+
+
+  grunt.registerTask('build', ['default', 'prepare', 'bump']);
+
 };

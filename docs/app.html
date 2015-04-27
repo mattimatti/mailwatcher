@@ -29,6 +29,11 @@
               </a>
             
               
+              <a class="source" href="logger.html">
+                logger.js
+              </a>
+            
+              
               <a class="source" href="all_test.html">
                 all_test.js
               </a>
@@ -72,6 +77,9 @@
 <span class="hljs-keyword">var</span> request = <span class="hljs-built_in">require</span>(<span class="hljs-string">'request'</span>);
 <span class="hljs-keyword">var</span> Dropbox = <span class="hljs-built_in">require</span>(<span class="hljs-string">"dropbox"</span>);
 <span class="hljs-keyword">var</span> validator = <span class="hljs-built_in">require</span>(<span class="hljs-string">"email-validator"</span>);
+<span class="hljs-keyword">var</span> <span class="hljs-built_in">Promise</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'promise'</span>);
+<span class="hljs-keyword">var</span> mkdirp = <span class="hljs-built_in">require</span>(<span class="hljs-string">'mkdirp'</span>);
+<span class="hljs-keyword">var</span> log = <span class="hljs-built_in">require</span>(<span class="hljs-string">'npmlog'</span>);
 
 
 
@@ -107,6 +115,28 @@ _.extend(Application.prototype, {
 
 		<span class="hljs-keyword">this</span>.config = config;
 
+
+		log.level = <span class="hljs-keyword">this</span>.config.logLevel;
+
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.config.logFile) {
+			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'logging to '</span> + <span class="hljs-keyword">this</span>.config.logFile);
+			log.stream = fs.createWriteStream(<span class="hljs-keyword">this</span>.config.logFile);
+		}
+
+
+		<span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.folderExists(<span class="hljs-keyword">this</span>.config.watchedFolder)) {
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Invalid folder: "</span> + <span class="hljs-keyword">this</span>.config.watchedFolder);
+		}
+
+		<span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.folderExists(<span class="hljs-keyword">this</span>.config.processedFolder)) {
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Invalid folder: "</span> + <span class="hljs-keyword">this</span>.config.processedFolder);
+		}
+
+		<span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.folderExists(<span class="hljs-keyword">this</span>.config.sendfailFolder)) {
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Invalid folder: "</span> + <span class="hljs-keyword">this</span>.config.sendfailFolder);
+		}
+
+
 	},</pre></div></div>
             
         </li>
@@ -129,11 +159,11 @@ _.extend(Application.prototype, {
 			<span class="hljs-keyword">this</span>.dropbox.authDriver(<span class="hljs-keyword">new</span> Dropbox.AuthDriver.NodeServer(<span class="hljs-number">8191</span>));
 			<span class="hljs-keyword">this</span>.dropbox.authenticate(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(error, client)</span> </span>{
 				<span class="hljs-keyword">if</span> (error) {
-					<span class="hljs-built_in">console</span>.log(error);
+					log.info(error);
 					<span class="hljs-keyword">return</span>;
 				}
 
-				<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'inited dropbox'</span>);</pre></div></div>
+				log.info(<span class="hljs-string">'inited dropbox'</span>);</pre></div></div>
             
         </li>
         
@@ -144,7 +174,7 @@ _.extend(Application.prototype, {
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <p>console.log(client);</p>
+              <p>log.info(client);</p>
 
             </div>
             
@@ -176,7 +206,7 @@ _.extend(Application.prototype, {
 		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.config.smtp) {
 			<span class="hljs-keyword">this</span>.transporter = nodemailer.createTransport(<span class="hljs-keyword">this</span>.config.smtp);
 
-			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'inited email service'</span>);
+			log.info(<span class="hljs-string">'inited email service'</span>);
 		}
 
 	},</pre></div></div>
@@ -196,7 +226,7 @@ _.extend(Application.prototype, {
             
             <div class="content"><div class='highlight'><pre>	start: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
 
-		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'start application'</span>);
+		log.info(<span class="hljs-string">'start application'</span>);
 
 		<span class="hljs-keyword">this</span>.initServices();
 
@@ -219,6 +249,21 @@ _.extend(Application.prototype, {
             
             <div class="content"><div class='highlight'><pre>		watch.createMonitor(<span class="hljs-keyword">this</span>.config.watchedFolder, opts, _.bind(<span class="hljs-keyword">this</span>.onMonitorCreated, <span class="hljs-keyword">this</span>));
 
+	},
+
+
+	folderExists: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(folder)</span> </span>{
+
+		<span class="hljs-keyword">try</span> {
+			<span class="hljs-keyword">var</span> stats = fs.lstatSync(folder);
+			<span class="hljs-keyword">if</span> (stats.isDirectory()) {
+				<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+			}
+		} <span class="hljs-keyword">catch</span> (err) {
+
+		}
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+
 	},</pre></div></div>
             
         </li>
@@ -238,7 +283,7 @@ _.extend(Application.prototype, {
 	onMonitorCreated: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(monitor)</span> </span>{
 
 
-		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'watching folder for created files : '</span> + <span class="hljs-keyword">this</span>.config.watchedFolder);</pre></div></div>
+		log.info(<span class="hljs-string">'watching folder for created files : '</span> + <span class="hljs-keyword">this</span>.config.watchedFolder);</pre></div></div>
             
         </li>
         
@@ -260,7 +305,7 @@ _.extend(Application.prototype, {
 		monitor.on("changed", _.bind(this.process, this));
 
 		monitor.on("removed", function (f, stat) {
-			console.log('removed: ' + f);
+			log.info('removed: ' + f);
 		});
 		*/</span>
 
@@ -282,14 +327,16 @@ _.extend(Application.prototype, {
             <div class="content"><div class='highlight'><pre>
 	uploadFile: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(file)</span> </span>{
 
-		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'uploadFile: '</span> + file);
+		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+		<span class="hljs-keyword">var</span> promise = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{
 
-		<span class="hljs-keyword">var</span> buffer = fs.readFileSync(file);
-		<span class="hljs-keyword">var</span> content = buffer.toString(<span class="hljs-string">'utf-8'</span>, <span class="hljs-number">0</span>, buffer.length);
 
-		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'content of file: '</span> + content);
+			log.info(<span class="hljs-string">'uploadFile: '</span> + file);
 
-		<span class="hljs-keyword">var</span> fileName = <span class="hljs-keyword">this</span>.config.dropbox.destFolder + path.basename(file);</pre></div></div>
+			<span class="hljs-keyword">var</span> buffer = fs.readFileSync(file);
+			<span class="hljs-keyword">var</span> content = buffer.toString(<span class="hljs-string">'utf-8'</span>, <span class="hljs-number">0</span>, buffer.length);
+
+			<span class="hljs-keyword">var</span> fileName = self.config.dropbox.destFolder + path.basename(file);</pre></div></div>
             
         </li>
         
@@ -304,13 +351,16 @@ _.extend(Application.prototype, {
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.dropbox) {
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span> (self.dropbox) {
 
-			<span class="hljs-keyword">this</span>.dropbox.writeFile(fileName, content, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(error, stat)</span> </span>{
-				<span class="hljs-keyword">if</span> (error) {
-					<span class="hljs-built_in">console</span>.log(error);
-					<span class="hljs-keyword">return</span>;
-				}</pre></div></div>
+				self.dropbox.writeFile(fileName, buffer, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(error, stat)</span> </span>{
+					<span class="hljs-keyword">if</span> (error) {
+						log.error(error);
+
+						reject(error);
+
+						<span class="hljs-keyword">return</span>;
+					}</pre></div></div>
             
         </li>
         
@@ -321,14 +371,19 @@ _.extend(Application.prototype, {
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
-              <p>console.log(stat);</p>
+              <p>log.info(stat);</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>				<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"file uploaded successfully to dropbox"</span>);
-			});
+            <div class="content"><div class='highlight'><pre>
+					resolve(stat);
+				});
 
-		}
+			}
+
+		});
+
+		<span class="hljs-keyword">return</span> promise;
 
 		<span class="hljs-comment">/*
 </span></pre></div></div>
@@ -349,7 +404,7 @@ _.extend(Application.prototype, {
             <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.ftp) {
 			<span class="hljs-keyword">this</span>.ftp.put(buffer, <span class="hljs-string">'path/to/remote/file.txt'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{
 				<span class="hljs-keyword">if</span> (!err)
-					<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"File transferred successfully!"</span>);
+					log.info(<span class="hljs-string">"File transferred successfully!"</span>);
 			});
 		}</pre></div></div>
             
@@ -379,14 +434,14 @@ _.extend(Application.prototype, {
 	logToDropboxFile: function (file, reason, content) {
 
 		var fileName = this.config.dropbox.destFolder + path.basename(file);
-		fileName += "." + reason + ".txt";
+		fileName += "." + reason + ".png";
 
 		this.dropbox.writeFile(fileName, content, function (error, stat) {
 			if (error) {
-				console.log(error);
+				log.error(error);
 				return;
 			}
-			console.log("logged error to dropbox");
+			log.info("logged " + reason + " to dropbox");
 		});
 
 
@@ -405,10 +460,14 @@ _.extend(Application.prototype, {
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	moveFile: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(file)</span> </span>{
+            <div class="content"><div class='highlight'><pre>	moveFile: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(file, destFolder)</span> </span>{
+
+		<span class="hljs-keyword">if</span> (destFolder) {
+			mkdirp(destFolder);
+		}
 
 		<span class="hljs-keyword">var</span> fileName = path.basename(file);
-		<span class="hljs-keyword">var</span> destFile = <span class="hljs-keyword">this</span>.config.processedFolder + <span class="hljs-string">'/'</span> + fileName;
+		<span class="hljs-keyword">var</span> destFile = destFolder + <span class="hljs-string">'/'</span> + fileName;
 
 		fs.renameSync(file, destFile);
 
@@ -477,7 +536,10 @@ _.extend(Application.prototype, {
             </div>
             
             <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> html = fs.readFileSync(<span class="hljs-string">'template.html'</span>, <span class="hljs-string">'utf8'</span>);
-		html = _s.replaceAll(html, <span class="hljs-string">"{image}"</span>, publicUrl);</pre></div></div>
+		html = _s.replaceAll(html, <span class="hljs-string">"{image}"</span>, publicUrl);
+
+
+		log.info(html);</pre></div></div>
             
         </li>
         
@@ -519,7 +581,7 @@ _.extend(Application.prototype, {
 			request(<span class="hljs-keyword">this</span>.config.templateURL).pipe(fs.createWriteStream(<span class="hljs-string">'./template.html'</span>));
 		}
 
-		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"update local template from "</span> + <span class="hljs-keyword">this</span>.config.templateURL);
+		log.info(<span class="hljs-string">"update local template from "</span> + <span class="hljs-keyword">this</span>.config.templateURL);
 	},
 
 
@@ -542,7 +604,7 @@ _.extend(Application.prototype, {
             <div class="content"><div class='highlight'><pre>		logEmailSent: function (err, obj) {
 
 			if (err) {
-				console.log("err", err);
+				log.info("err", err);
 				return;
 			}
 
@@ -551,8 +613,8 @@ _.extend(Application.prototype, {
 
 			if (this.config.logService &amp;&amp; !_.isEmpty(this.config.logService)) {
 
-				console.log('logging');
-				console.log(obj);
+				log.info('logging');
+				log.info(obj);
 
 				obj = obj || {};
 
@@ -564,8 +626,8 @@ _.extend(Application.prototype, {
 					json: true,
 					body: obj
 				}, function (error, response, body) {
-					console.log("logged");
-					console.log(body);
+					log.info("logged");
+					log.info(body);
 				});
 			}
 		},
@@ -586,8 +648,9 @@ _.extend(Application.prototype, {
             
             <div class="content"><div class='highlight'><pre>	sendMessage: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(message, file)</span> </span>{
 
+		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
 
-		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;</pre></div></div>
+		<span class="hljs-keyword">var</span> promise = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{</pre></div></div>
             
         </li>
         
@@ -603,26 +666,29 @@ _.extend(Application.prototype, {
             </div>
             
             <div class="content"><div class='highlight'><pre>
-		<span class="hljs-keyword">var</span> mailParams = <span class="hljs-keyword">this</span>.config.mail;
-		_.extend(mailParams, message);
+			<span class="hljs-keyword">var</span> mailParams = self.config.mail;
+			_.extend(mailParams, message);
 
 
-		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.transporter) {
-			<span class="hljs-keyword">this</span>.transporter.sendMail(mailParams, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, obj)</span> </span>{
+			<span class="hljs-keyword">if</span> (self.transporter) {
 
-				<span class="hljs-keyword">if</span> (err) {
-					self.logToDropboxFile(file, <span class="hljs-string">'error'</span>, <span class="hljs-built_in">JSON</span>.stringify(err));
-					<span class="hljs-keyword">return</span>;
-				}
+				log.info(<span class="hljs-string">"mailParams"</span>, mailParams);
 
-				self.logToDropboxFile(file, <span class="hljs-string">'success'</span>, <span class="hljs-built_in">JSON</span>.stringify(obj));
 
-			});
-		}
+				self.transporter.sendMail(mailParams, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, obj)</span> </span>{
 
-		<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+					<span class="hljs-keyword">if</span> (err) {
 
-	},</pre></div></div>
+						log.error(<span class="hljs-string">"sent"</span>, <span class="hljs-string">"error sending email"</span>);
+						log.error(<span class="hljs-string">"sent"</span>, err);
+
+						self.logToDropboxFile(file, <span class="hljs-string">'error'</span>, <span class="hljs-built_in">JSON</span>.stringify(err));
+
+						reject(err);
+						<span class="hljs-keyword">return</span>;
+					}
+
+					log.info(<span class="hljs-string">"sendResponse"</span>, obj);</pre></div></div>
             
         </li>
         
@@ -633,11 +699,22 @@ _.extend(Application.prototype, {
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
-              <p>Check if the file matches the defined extension</p>
+              <p>self.logToDropboxFile(file, ‘success’, JSON.stringify(obj));</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>	isValidFile: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(file)</span> </span>{</pre></div></div>
+            <div class="content"><div class='highlight'><pre>
+					resolve();
+
+				});
+			}
+
+		});
+
+
+		<span class="hljs-keyword">return</span> promise;
+
+	},</pre></div></div>
             
         </li>
         
@@ -647,6 +724,21 @@ _.extend(Application.prototype, {
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Check if the file matches the defined extension</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	isValidFile: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(file)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>validate is a jpeg</p>
 
@@ -660,11 +752,11 @@ _.extend(Application.prototype, {
         </li>
         
         
-        <li id="section-27">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>get the name</p>
 
@@ -675,11 +767,11 @@ _.extend(Application.prototype, {
         </li>
         
         
-        <li id="section-28">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <p>validate email address</p>
 
@@ -696,11 +788,11 @@ _.extend(Application.prototype, {
         </li>
         
         
-        <li id="section-29">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <p>Process a file (full path)</p>
 
@@ -708,36 +800,66 @@ _.extend(Application.prototype, {
             
             <div class="content"><div class='highlight'><pre>	process: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(file)</span> </span>{
 
-		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'process created file: '</span> + file);
+
+		<span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+
+		log.info(<span class="hljs-string">'process'</span>, <span class="hljs-string">'created file: '</span> + file);
 
 		<span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.isValidFile(file)) {
-			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"invalid file name "</span> + file);
-			<span class="hljs-keyword">this</span>.moveFile(file);
+			log.info(<span class="hljs-string">"invalid file name "</span> + file);
+			<span class="hljs-keyword">this</span>.moveFile(file, self.config.sendfailFolder);
 			<span class="hljs-keyword">return</span>;
-		}
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>upload the file, then send the message </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+		<span class="hljs-keyword">this</span>.uploadFile(file).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(stat)</span> </span>{
 
 
-		<span class="hljs-keyword">this</span>.uploadFile(file);
+			log.info(<span class="hljs-string">'process'</span>, <span class="hljs-string">"file uploaded successfully to dropbox"</span>);
+
+			<span class="hljs-keyword">var</span> message = self.prepareMessage(file);
+
+			<span class="hljs-keyword">if</span> (message === <span class="hljs-literal">false</span>) {
+				log.error(<span class="hljs-string">'process'</span>, <span class="hljs-string">"invalid message, move"</span>);
+				self.moveFile(file, self.config.sendfailFolder);
+				<span class="hljs-keyword">return</span>;
+			}
 
 
-		<span class="hljs-keyword">var</span> message = <span class="hljs-keyword">this</span>.prepareMessage(file);
+			log.info(<span class="hljs-string">'process'</span>, <span class="hljs-string">"send message"</span>);
 
-		<span class="hljs-keyword">if</span> (message === <span class="hljs-literal">false</span>) {
-			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"invalid email address"</span>);
-			<span class="hljs-keyword">this</span>.moveFile(file);
-			<span class="hljs-keyword">return</span>;
-		}
+			self.sendMessage(message, file).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
 
+				self.moveFile(file, self.config.processedFolder);
 
-		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.sendMessage(message, file)) {
+				self.getTemplate();
 
-			<span class="hljs-keyword">this</span>.moveFile(file);
-
-			<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"------- file processed successfully, ready for next -------"</span>);
-		}
+				log.info(<span class="hljs-string">'process'</span>, <span class="hljs-string">"------- file processed successfully, ready for next -------\n\n\n"</span>);
 
 
-		<span class="hljs-keyword">this</span>.getTemplate();
+			}).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+				log.error(<span class="hljs-string">'process'</span>, <span class="hljs-string">"------- error sending email -------"</span>);
+				self.moveFile(file, self.config.sendfailFolder);
+			});
+
+
+
+		});
+
+
 
 	}
 

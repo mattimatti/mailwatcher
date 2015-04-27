@@ -29,6 +29,11 @@
               </a>
             
               
+              <a class="source" href="logger.html">
+                logger.js
+              </a>
+            
+              
               <a class="source" href="all_test.html">
                 all_test.js
               </a>
@@ -98,6 +103,7 @@
 <span class="hljs-keyword">var</span> options = {
 	watchedFolder: <span class="hljs-string">'./test/watched'</span>,
 	processedFolder: <span class="hljs-string">'./test/processed'</span>,
+	sendfailFolder: <span class="hljs-string">'./test/sendfail'</span>,
 	dropbox: {
 		publicURL: <span class="hljs-string">''</span>
 	}
@@ -111,12 +117,15 @@
 
 	setUp: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(callback)</span> </span>{
 
+
+		mkdirp(options.watchedFolder, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{});
+		mkdirp(options.processedFolder, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{});
+		mkdirp(options.sendfailFolder, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{});
+
 		<span class="hljs-keyword">this</span>.app = <span class="hljs-keyword">new</span> Application();
 		<span class="hljs-keyword">this</span>.app.initialize(options);
 
 
-		mkdirp(<span class="hljs-keyword">this</span>.app.config.watchedFolder, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{});
-		mkdirp(<span class="hljs-keyword">this</span>.app.config.processedFolder, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{});
 
 		callback();
 	},
@@ -127,6 +136,7 @@
 
 		fse.emptyDirSync(<span class="hljs-keyword">this</span>.app.config.watchedFolder);
 		fse.emptyDirSync(<span class="hljs-keyword">this</span>.app.config.processedFolder);
+		fse.emptyDirSync(<span class="hljs-keyword">this</span>.app.config.sendfailFolder);
 
 		<span class="hljs-keyword">this</span>.app = <span class="hljs-literal">null</span>;
 
@@ -206,7 +216,7 @@
 
 		test.expect(<span class="hljs-number">4</span>);
 
-		<span class="hljs-keyword">var</span> theFile = <span class="hljs-keyword">this</span>.app.config.watchedFolder + <span class="hljs-string">'/test.jpeg'</span>;
+		<span class="hljs-keyword">var</span> theFile = <span class="hljs-keyword">this</span>.app.config.watchedFolder + <span class="hljs-string">'/mmonti@gmail.com.jpeg'</span>;
 
 		<span class="hljs-keyword">if</span> (fs.existsSync(theFile)) {
 			fs.unlinkSync(theFile);
@@ -217,10 +227,12 @@
 
 		createImage(theFile);
 
+
+		<span class="hljs-built_in">console</span>.log(<span class="hljs-string">"check"</span>, theFile);
 		test.equal(fs.existsSync(theFile), <span class="hljs-literal">true</span>);
 
 
-		<span class="hljs-keyword">var</span> destFile = <span class="hljs-keyword">this</span>.app.moveFile(theFile);
+		<span class="hljs-keyword">var</span> destFile = <span class="hljs-keyword">this</span>.app.moveFile(theFile, <span class="hljs-keyword">this</span>.app.config.processedFolder);
 
 
 		test.equal(fs.existsSync(theFile), <span class="hljs-literal">false</span>);
