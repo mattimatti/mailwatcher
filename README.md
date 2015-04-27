@@ -18,6 +18,8 @@ For developers:
 
 - Install Grunt
 
+In your shell:
+
     npm install grunt-cli -git
     npm install
     grunt
