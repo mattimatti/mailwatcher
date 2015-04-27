@@ -10,4 +10,7 @@ Gruntfile.js
 .gitignore
 npm-debug.log
 TODO.md
-vagrantfile
+
+.config.json
+node_modules
+mailwatcher.log
