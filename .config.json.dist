@@ -1,0 +1,54 @@
+{
+
+
+	"logLevel": "info",
+	"xlogFile": "./mailwatcher.log",
+
+	"watchedFolder": "/Users/xxxxxxx/Documents/watch",
+	"processedFolder": "/Users/xxxxxxxx/Documents/processed",
+	"sendfailFolder": "/Users/xxxxxxxxxxx/Documents/unsent",
+
+	"mail": {
+		"from": "Jonh Doe <john.doe@example.com>",
+		"subject": "Hello World",
+		"text": "my default text {image} text"
+	},
+
+	"smtp": {
+		"service": "Gmail",
+		"auth": {
+			"user": "xxxxxxxx@gmail.com",
+			"pass": "yourpass"
+		}
+	},
+
+	"smtpshit": {
+		"host": "smtp.example.com",
+		"port": "25",
+		"auth": {
+			"user": "xxxxxxx@yyyyyyyyyy.it",
+			"pass": "xxxxxxxxx"
+		}
+	},
+
+	"ftps": {
+		"host": "myserver.com",
+		"port": 21,
+		"user": "user",
+		"pass": "1234"
+	},
+
+	"dropbox": {
+		"auth": {
+			"key": "your-key-code",
+			"secret": "your-secret",
+			"token": "your-token",
+			"sandbox": "true"
+		},
+		"publicUrl": "https://dl.dropboxusercontent.com/u/xxxxxxxxx/hermes/{file}",
+		"destFolder": "Public/hermes/"
+	},
+	"logService": "",
+	"templateURL": "https://dl.dropboxusercontent.com/u/xxxxxxxxxx/hermes/template.html"
+
+}
