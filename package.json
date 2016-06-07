@@ -4,7 +4,7 @@
   "description": "",
   "main": "./lib/app.js",
   "bin": "./bin/cli.js",
-  "bugs": "https://bitbucket.org/ekees/crawler/issues",
+  "bugs": "https://github.com/mattimatti/mailwatcher/issues",
   "scripts": {
     "test": "grunt"
   },
