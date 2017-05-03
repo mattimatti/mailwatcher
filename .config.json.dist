@@ -4,13 +4,13 @@
 	"logLevel": "info",
 	"xlogFile": "./mailwatcher.log",
 
-	"watchedFolder": "/Users/xxxxxxx/Documents/watch",
-	"processedFolder": "/Users/xxxxxxxx/Documents/processed",
-	"sendfailFolder": "/Users/xxxxxxxxxxx/Documents/unsent",
+	"watchedFolder": "/Users/mattimatti/Documents/watch",
+	"processedFolder": "/Users/mattimatti/Documents/processed",
+	"sendfailFolder": "/Users/mattimatti/Documents/unsent",
 
 	"mail": {
-		"from": "Jonh Doe <john.doe@example.com>",
-		"subject": "Hello World",
+		"from": "xxxx <xxxxxx@gmail.com>",
+		"subject": "Hermes ok",
 		"text": "my default text {image} text"
 	},
 
@@ -18,24 +18,17 @@
 		"service": "Gmail",
 		"auth": {
 			"user": "xxxxxxxx@gmail.com",
-			"pass": "yourpass"
+			"pass": "xxxxxxx"
 		}
 	},
 
-	"smtpshit": {
-		"host": "smtp.example.com",
-		"port": "25",
-		"auth": {
-			"user": "xxxxxxx@yyyyyyyyyy.it",
-			"pass": "xxxxxxxxx"
-		}
-	},
 
-	"ftps": {
-		"host": "myserver.com",
+	"ftp": {
+		"host": "ftp.xxxxxx",
 		"port": 21,
-		"user": "user",
-		"pass": "1234"
+		"user": "xxxx",
+		"pass": "xxxxx",
+		"debugMode": true
 	},
 
 	"dropbox": {
@@ -45,10 +38,10 @@
 			"token": "your-token",
 			"sandbox": "true"
 		},
-		"publicUrl": "https://dl.dropboxusercontent.com/u/xxxxxxxxx/hermes/{file}",
-		"destFolder": "Public/hermes/"
+		"publicUrl": "http://xc-events.it/hermes/{file}",
+		"destFolder": "web/hermes/"
 	},
 	"logService": "",
-	"templateURL": "https://dl.dropboxusercontent.com/u/xxxxxxxxxx/hermes/template.html"
+	"templateURL": "http://xc-events.it/hermes/template/template.html"
 
 }
